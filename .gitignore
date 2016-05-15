@@ -1,3 +1,7 @@
 core
 *.swp
 a.out
+client
+server
+cliente
+servidor
