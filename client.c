@@ -48,61 +48,39 @@ int main(int argc, char *argv[]) {
 
     bcopy((char*)registroDNS->h_addr, (char*)&enderecRemoto.sin_addr, registroDNS->h_length);
 
-    enderecRemoto.sin_family = AF_INET;
     enderecRemoto.sin_port = htons(atoi(argv[2]));
-    sock_descr = socket(AF_INET, SOCK_STREAM, 0);
-   
-    if(connect(sock_descr, (struct sockaddr*)&enderecRemoto, sizeof(enderecRemoto)) < 0) {
-        puts("Não consegui conectar com o servidor.");
+    if((sock_descr = socket(registroDNS->h_addrtype, SOCK_DGRAM, 0)) < 0) {
+        puts("Nao consegui abrir o socket.");
         exit(1);
     }
+
+    strcpy(dados, "Tamanho:");
+    tamanhoDados = strlen(dados);
+    itobase10(dados, DATA_SIZE - tamanhoDados, numMensagens);
+
+    if(sendto(sock_descr, dados, strlen(dados)+1, 0, (struct sockaddr *) &enderecRemoto, sizeof(enderecRemoto)) == 0) {
+        puts("Nao consegui transmitir a mensagem inicial.");
+        exit(1);
+    }
+
+    int i = sizeof(enderecRemoto);
+
+    recvfrom(sock_descr, dados, DATA_SIZE, 0, (struct sockaddr *) &enderecRemoto, &i);
+
+    //read(sock_descr, buffer, BUFSIZ); // Se o servidor respondeu, significa que ele sabe quantas mensagens vou mandar. Hora de enviar.
+//    printf("Sou o cliente, recebi %s\n", buffer);
+
+    flushBuf(dados, DATA_SIZE);
 
     while(msgAtual < numMensagens) {
         cria_msg(dados, msgAtual);
         tamanhoDados = strlen(dados);
-        if(write(sock_descr, dados, tamanhoDados) != tamanhoDados) {
-            puts("Não consegui transmitir os dados.");
+        if(sendto(sock_descr, dados, strlen(dados)+1, 0, (struct sockaddr *) &enderecRemoto, sizeof(enderecRemoto)) == 0) {
+            puts("Nao consegui transmitir a mensagem inicial.");
             exit(1);
         }
-
-        read(sock_descr, buffer, BUFSIZ);
-        if(atoi(dados) == msgAtual) {
-            printf("Sou o cliente, recebi corretamente %s\n", buffer);
-            recebidas++;
-        } else {
-            printf("Sou o cliente, esperava mensagem %d mas recebi %s\n", msgAtual, buffer);
-            ordemErrada++;
-            recebidas++;
-        }
+        msgAtual++;
     }
-
-    /* Contabilização do resultado:
-     * Manda mais uma mensagem dizendo quantas falhas? Se o servidor for contar sozinho, pode dar treta.
-     * Tipo, se o servidor receber a ultima mensagem com numero 500 e supor que foram 500 mensagens, mas foram 510,
-     * eu vou ignorar parte do resultado, o que é realmente bad. Então a gente faz o cliente no final mandar uma
-     * mensagem que indique quantas mensagens foram enviadas / quantas mensagens falharam / quantas chegaram fora de ordem.
-     * Ou uma mensagem só que tenha esses 3 valores, pode ser válido.
-     */
-
-    /* Fim da transmissão:
-     * Vejo 3 formas:
-     * 1- A primeira mensagem é uma mensagem que diz quantas mensagens vou mandar (daí tem que definir se inclui a msg de contabilização ou n)
-     * 2- A última mensagem tem dados == 0, e depois dela vem uma última que é a de contabilização.
-     * 3- Vai recebendo mensagens até achar um formato diferente - que representa a última mensagem, de contabilização.
-          Possivelmente fazer tipo, a mensagem de contabilização assim: "Resultado: %d - %d - %d" e no servidor while(dados[0] != 'R') {}
-     */
-
-/*
-    if(write(sock_descr, dados, strlen(dados)) != strlen(dados)) {
-        puts("Não consegui transmitir os dados.");
-        exit(1);
-    }
-
-    read(sock_descr, buffer, BUFSIZ);
-    printf("Sou o cliente, recebi %s\n", buffer);
-    close(sock_descr);
-    exit(0);
-*/
 }
 
 char* itobase10(char *buf, size_t sz, int value) {
@@ -112,7 +90,7 @@ char* itobase10(char *buf, size_t sz, int value) {
 
 void cria_msg(char *dados, int msgAtual) {
     flushBuf(dados, DATA_SIZE);
-    itobase10(dados, DATA_SIZE, msgAtual); // Usa 10 porque é base decimal.
+    itobase10(dados, DATA_SIZE, msgAtual);
 }
 
 void flushBuf(char *buf, int size) {
@@ -121,5 +99,3 @@ void flushBuf(char *buf, int size) {
         buf[i] = '\0';
     }
 }
-
-
