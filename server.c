@@ -15,6 +15,39 @@ void flushBuff(char* buffer, int size) {
     }
 }
 
+/*
+struct cliente {
+    long ip;
+    int total_msg, msg_rec, msg_perd, msg_err;
+}
+
+typedef struct cliente cliente;
+
+int jah_comuniquei(cliente *c, int num_clientes, long ip) {
+    // Retorna 1 se o cliente já comunicou, 0 caso contrário.
+    int i;
+    for(i=0; i<num_clientes; ++i) {
+        if(ip == c.ip) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+if(jah_comuniquei(c, num_clientes, isa.sin_addr.s_addr) == 1) {
+    // Comuniquei
+} else {
+    // Nao comuniquei, cria um cliente e faz num_clientes++.
+    c[num_clientes].ip = isa.sin_addr.s_addr;
+    c[num_clientes].total_msg = 0;
+    c[num_clientes].msg_rec = 0;
+    c[num_clientes].msg_perd = 0;
+    c[num_clientes].msg_err = 0; // Ordem errada
+    num_clientes++;
+}
+*/
+
 int main(int argc, char*argv[]) {
     int sock_escuta, sock_atende;
     int numMensagens, esperado;
