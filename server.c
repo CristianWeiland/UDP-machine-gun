@@ -5,6 +5,8 @@
 #include <netdb.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define MAXCLIENTES 20
 #define TAMFILA 5
 #define MAXNOMEHOST 30
 
@@ -15,39 +17,39 @@ void flushBuff(char* buffer, int size) {
     }
 }
 
-/*
 struct cliente {
     long ip;
     int total_msg, msg_rec, msg_perd, msg_err;
-}
+};
 
 typedef struct cliente cliente;
+
+void cria_cliente(cliente c[], int index, long ip) {
+    c[index].ip = ip; // isa.sin_addr.s_addr;
+    c[index].total_msg = 0;
+    c[index].msg_rec = 0;
+    c[index].msg_perd = 0;
+    c[index].msg_err = 0; // Ordem errada
+}
 
 int jah_comuniquei(cliente *c, int num_clientes, long ip) {
     // Retorna 1 se o cliente já comunicou, 0 caso contrário.
     int i;
     for(i=0; i<num_clientes; ++i) {
         if(ip == c.ip) {
-            return 1;
+            return ip;
         }
     }
-    return 0;
+    return -1;
 }
-
-
+/*
 if(jah_comuniquei(c, num_clientes, isa.sin_addr.s_addr) == 1) {
     // Comuniquei
 } else {
     // Nao comuniquei, cria um cliente e faz num_clientes++.
-    c[num_clientes].ip = isa.sin_addr.s_addr;
-    c[num_clientes].total_msg = 0;
-    c[num_clientes].msg_rec = 0;
-    c[num_clientes].msg_perd = 0;
-    c[num_clientes].msg_err = 0; // Ordem errada
     num_clientes++;
 }
 */
-
 int main(int argc, char*argv[]) {
     int sock_escuta, sock_atende;
     int numMensagens, esperado;
@@ -57,12 +59,15 @@ int main(int argc, char*argv[]) {
     struct sockaddr_in enderecLocal, enderecCliente;
     struct hostent *registroDNS;
     char nomeHost[MAXNOMEHOST];
+    cliente c[MAXCLIENTES];
 
     signal(); // Evitar que o processo ocupe a porta como zumbi.
-    if(argc != 2) {
-        puts("Uso correto: servidor <porta>");
+    if(argc != 3) {
+        puts("Uso correto: servidor <porta> <num_mensagens_por_cliente>");
         exit(1);
     }
+
+    const int MaxMsg = atoi(argv[2]);
 
     gethostname(nomeHost, MAXNOMEHOST); // Syscall para descobrir o nome do host (local).
 
@@ -106,16 +111,35 @@ int main(int argc, char*argv[]) {
 
     int msgAtual = 0;
 
-    while(msgAtual < numMensagens) {
+    while(1) {
         recvfrom(sock_atende, buffer, BUFSIZ, 0, (struct sockaddr *) &enderecCliente, &i);
         //read(sock_atende, buffer, BUFSIZ);
         printf("Sou o servidor, recebi %s\n", buffer);
-        if(msgAtual != atoi(buffer)) {
-            ordemErrada++;
+
+        if((index = jah_comuniquei(c, num_clientes, enderecCliente.sin_addr.s_addr)) == -1) {
+            cria_cliente(c, num_clientes, enderecCliente.sin_addr.s_addr);
+            index = num_clientes;
+            num_clientes++;
         }
-        recebidas++;
+
+        //if(msgAtual != atoi(buffer)) {
+        if(c[index].total_msg != atoi(buffer)) {
+            //ordemErrada++;
+            c[index].msg_err++;
+        }
+        c[index].msg_rec++;
+        c[index].total_msg++;
+        //recebidas++;
+
+        if(strcmp(buffer,"End") == 0) {
+            break;
+        }
 
         flushBuff(buffer, BUFSIZ);
+    }
+
+    for(i=0; i<num_clientes; ++i) {
+        c[i].msg_perd = c[i].total_msg - c[i].msg_rec;
     }
 
     /*
