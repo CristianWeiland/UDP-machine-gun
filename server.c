@@ -41,11 +41,11 @@ void cria_cliente(cliente c[], int index, long ip) {
 }
 
 int ja_comunicou(cliente *c, int num_clientes, long ip) {
-    // Retorna 1 se o cliente já comunicou, 0 caso contrário.
+    // Retorna o indice i de c[i] se o cliente já comunicou com o cliente i, -1 caso contrário.
     int i;
     for(i=0; i<num_clientes; ++i) {
         if(ip == c[i].ip) {
-            return ip;
+            return i;
         }
     }
     return -1;
@@ -59,9 +59,8 @@ if(jah_comuniquei(c, num_clientes, isa.sin_addr.s_addr) == 1) {
 }
 */
 int main(int argc, char*argv[]) {
-    int sock_escuta, sock_atende;
+    int sock;
     int numMensagens, esperado;
-    //int recebidas = 0, ordemErrada = 0;
     int num_clientes = 0;
     unsigned int i;
     char buffer[BUFSIZ+1];
@@ -85,44 +84,29 @@ int main(int argc, char*argv[]) {
         exit(1);
     }
 
-    enderecLocal.sin_family = AF_INET;
     enderecLocal.sin_port = htons(atoi(argv[1]));
 
     bcopy((char*) registroDNS->h_addr, (char*)&enderecLocal.sin_addr, registroDNS->h_length);
 
-    if((sock_escuta = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        puts("Não consegui abrir o socket.");
+    enderecLocal.sin_family = registroDNS->h_addrtype;
+
+    if((sock = socket(registroDNS->h_addrtype, SOCK_DGRAM, 0)) < 0) {
+        puts("Nao consegui abrir o socket.");
         exit(1);
     }
 
-    if(bind(sock_escuta, (struct sockaddr*)&enderecLocal, sizeof(enderecLocal)) < 0) {
-        puts("Não consegui fazer o bind."); // Troque de porta!
+    if(bind(sock, (struct sockaddr *) &enderecLocal, sizeof(enderecLocal)) < 0) {
+        puts("Nao consegui fazer o bind");
         exit(1);
     }
-
-    listen(sock_escuta, TAMFILA);
 
     // Escuta a primeira mensagem, que contem o numero de mensagens que serao enviadas por um cliente.
     i = sizeof(enderecCliente);
 
-    struct timeval timeout={2,0};
-    if((setsockopt(sock_atende, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(struct timeval))) == 0) {
-        exit(0);
-    }
-    //read(sock_atende, buffer, BUFSIZ);
-    recvfrom(sock_atende, buffer, BUFSIZ, 0, (struct sockaddr *) &enderecCliente, &i);
-
-    numMensagens = atoi(buffer);
-    //printf("Server: Esperando %d mensagens.\n", MaxMsg);
-    //write(sock_atende, buffer, BUFSIZ); // Responde qualquer coisa.
-    sendto(sock_atende, buffer, BUFSIZ, 0, (struct sockaddr *) &enderecCliente, i);
-    flushBuff(buffer, BUFSIZ);
-
     int msgAtual = 0, index;
 
     while(1) {
-        recvfrom(sock_atende, buffer, BUFSIZ, 0, (struct sockaddr *) &enderecCliente, &i);
-        //read(sock_atende, buffer, BUFSIZ);
+        recvfrom(sock, buffer, BUFSIZ, 0, (struct sockaddr *) &enderecCliente, &i);
         //if(enderecCliente.sin_addr.s_addr != 0) { // Se for == 0, ach oque nao recebi nenhuma mensagem
             printf("Sou o servidor, recebi %s do ip %ld\n", buffer, enderecCliente.sin_addr.s_addr);
         //}
@@ -133,14 +117,11 @@ int main(int argc, char*argv[]) {
             num_clientes++;
         }
 
-        //if(msgAtual != atoi(buffer)) {
-        if(c[index].total_msg != atoi(buffer)) {
-            //ordemErrada++;
+        if(c[index].msg_rec != atoi(buffer)) {
             c[index].msg_err++;
         }
         c[index].msg_rec++;
-        c[index].total_msg++;
-        //recebidas++;
+        //c[index].total_msg++;
 
         if(strcmp(buffer,"End") == 0) {
             break;
@@ -157,19 +138,4 @@ int main(int argc, char*argv[]) {
     Calcula media, desvio padrao.
     */
 
-/*
-    while(1) {
-        i = sizeof(enderecLocal);
-        if((sock_atende = accept(sock_escuta, (struct sockaddr*)&enderecCliente, &i)) < 0) {
-            puts("Não consegui completar a conexão.");
-            exit(1);
-        }
-
-        read(sock_atende, buffer, BUFSIZ);
-        printf("Sou o servidor, recebi %s\n", buffer);
-        write(sock_atende, buffer, BUFSIZ);
-        close(sock_atende);
-        flushBuff(buffer, BUFSIZ);
-    }
-*/
 }
