@@ -57,15 +57,15 @@ int main(int argc, char *argv[]) {
     strcpy(dados, "Tamanho:");
     tamanhoDados = strlen(dados);
     itobase10(dados, DATA_SIZE - tamanhoDados, numMensagens);
-
+/*
     if(sendto(sock_descr, dados, strlen(dados)+1, 0, (struct sockaddr *) &enderecRemoto, sizeof(enderecRemoto)) == 0) {
         puts("Nao consegui transmitir a mensagem inicial.");
         exit(1);
     }
-
+*/
     int i = sizeof(enderecRemoto);
 
-    recvfrom(sock_descr, dados, DATA_SIZE, 0, (struct sockaddr *) &enderecRemoto, &i);
+    //recvfrom(sock_descr, dados, DATA_SIZE, 0, (struct sockaddr *) &enderecRemoto, &i);
 
     //read(sock_descr, buffer, BUFSIZ); // Se o servidor respondeu, significa que ele sabe quantas mensagens vou mandar. Hora de enviar.
 //    printf("Sou o cliente, recebi %s\n", buffer);
@@ -78,6 +78,8 @@ int main(int argc, char *argv[]) {
         if(sendto(sock_descr, dados, strlen(dados)+1, 0, (struct sockaddr *) &enderecRemoto, sizeof(enderecRemoto)) == 0) {
             puts("Nao consegui transmitir a mensagem inicial.");
             exit(1);
+        } else {
+            puts("Acho que enviei.");
         }
         msgAtual++;
     }

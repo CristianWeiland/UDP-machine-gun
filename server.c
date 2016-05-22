@@ -24,6 +24,14 @@ struct cliente {
 
 typedef struct cliente cliente;
 
+/* Sobre essa estrutura:
+O ideal eh implementar uma arvore (pode ser binaria, que eh easy) pra fazer insercao. Acho que nao precisamos nos preocupar
+muito com remocao, pq nao devem ficar aparecendo muitos clientes aleatorios, entao se soh fizer insercao jah dah boa.
+Mesmo assim, se quiser implementar remocao, ficaria ainda melhor. A vantagem de arvore eh que dai a gente faz a busca binaria
+pelo IP, e como eh um long, eh tranquilo fazer a funcao de comparacao.
+Se realmente implementar isso, tem que mudar a funcao ja_comuniquei
+*/
+
 void cria_cliente(cliente c[], int index, long ip) {
     c[index].ip = ip; // isa.sin_addr.s_addr;
     c[index].total_msg = 0;
@@ -32,11 +40,11 @@ void cria_cliente(cliente c[], int index, long ip) {
     c[index].msg_err = 0; // Ordem errada
 }
 
-int jah_comuniquei(cliente *c, int num_clientes, long ip) {
+int ja_comunicou(cliente *c, int num_clientes, long ip) {
     // Retorna 1 se o cliente já comunicou, 0 caso contrário.
     int i;
     for(i=0; i<num_clientes; ++i) {
-        if(ip == c.ip) {
+        if(ip == c[i].ip) {
             return ip;
         }
     }
@@ -53,7 +61,8 @@ if(jah_comuniquei(c, num_clientes, isa.sin_addr.s_addr) == 1) {
 int main(int argc, char*argv[]) {
     int sock_escuta, sock_atende;
     int numMensagens, esperado;
-    int recebidas = 0, ordemErrada = 0;
+    //int recebidas = 0, ordemErrada = 0;
+    int num_clientes = 0;
     unsigned int i;
     char buffer[BUFSIZ+1];
     struct sockaddr_in enderecLocal, enderecCliente;
@@ -97,26 +106,28 @@ int main(int argc, char*argv[]) {
     i = sizeof(enderecCliente);
 
     struct timeval timeout={2,0};
-    if((setsockopt(sock_atende, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(struct timeval)) == 0) {
+    if((setsockopt(sock_atende, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(struct timeval))) == 0) {
         exit(0);
     }
     //read(sock_atende, buffer, BUFSIZ);
     recvfrom(sock_atende, buffer, BUFSIZ, 0, (struct sockaddr *) &enderecCliente, &i);
 
     numMensagens = atoi(buffer);
-    printf("Server: Esperando %d mensagens.\n", numMensagens);
+    //printf("Server: Esperando %d mensagens.\n", MaxMsg);
     //write(sock_atende, buffer, BUFSIZ); // Responde qualquer coisa.
     sendto(sock_atende, buffer, BUFSIZ, 0, (struct sockaddr *) &enderecCliente, i);
     flushBuff(buffer, BUFSIZ);
 
-    int msgAtual = 0;
+    int msgAtual = 0, index;
 
     while(1) {
         recvfrom(sock_atende, buffer, BUFSIZ, 0, (struct sockaddr *) &enderecCliente, &i);
         //read(sock_atende, buffer, BUFSIZ);
-        printf("Sou o servidor, recebi %s\n", buffer);
+        //if(enderecCliente.sin_addr.s_addr != 0) { // Se for == 0, ach oque nao recebi nenhuma mensagem
+            printf("Sou o servidor, recebi %s do ip %ld\n", buffer, enderecCliente.sin_addr.s_addr);
+        //}
 
-        if((index = jah_comuniquei(c, num_clientes, enderecCliente.sin_addr.s_addr)) == -1) {
+        if((index = ja_comunicou(c, num_clientes, enderecCliente.sin_addr.s_addr)) == -1) {
             cria_cliente(c, num_clientes, enderecCliente.sin_addr.s_addr);
             index = num_clientes;
             num_clientes++;
