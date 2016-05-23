@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     }
 
     numMensagens = atoi(argv[3]);
-    if(numMensagens <= 0) {
+    if(numMensagens <= 0 && strcmp("result",argv[3]) != 0) {
         puts("Não consigo enviar menos de 1 mensagem.");
         exit(1);
     }
@@ -55,6 +55,19 @@ int main(int argc, char *argv[]) {
     }
 
     //int i = sizeof(enderecRemoto);
+
+    if(strcmp(argv[3], "result") == 0) {
+        puts("Enviando mensagem fim.");
+        strcpy(dados, "Resultado");
+        if(sendto(sock_descr, dados, strlen(dados)+1, 0, (struct sockaddr *) &enderecRemoto, sizeof(enderecRemoto)) == 0) {
+            puts("Nao consegui transmitir a mensagem.");
+            exit(1);
+        } else {
+            puts("Acho que enviei.");
+        }
+        close(sock_descr);
+        return 0;
+    }
 
     flushBuf(dados, DATA_SIZE);
 
