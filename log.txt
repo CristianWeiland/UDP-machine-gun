@@ -1,0 +1,38 @@
+===============================================================
+Inicio da execucao: programa que implementa uma artilharia UDP.
+Prof. Elias P. Duarte Jr. - Disciplina Redes de Computadores II
+===============================================================
+
+O servidor recebeu um total de 1000000 mensagens de 1 clientes.
+
+Eram esperadas 1000000 mensagens, sobre as quais:
+ - 308954 foram recebidas (30.895400%);
+ - 691046 foram perdidas (69.104600%);
+ - 1 estavam fora de sequencia (0.000100%);
+
+O cliente 1, que enviou 1000000 mensagens, teve como resultados:
+ - 308954 foram recebidas (30.895400%).
+ - 691046 foram perdidas (69.104600%).
+ - 1 estavam fora de sequencia (0.000100%).
+
+Fim do log.
+
+===============================================================
+Inicio da execucao: programa que implementa uma artilharia UDP.
+Prof. Elias P. Duarte Jr. - Disciplina Redes de Computadores II
+===============================================================
+
+O servidor recebeu um total de 10 mensagens de 1 clientes.
+
+Eram esperadas 10 mensagens, sobre as quais:
+ - 10 foram recebidas (100.000000%);
+ - 0 foram perdidas (0.000000%);
+ - 0 estavam fora de sequencia (0.000000%);
+
+O cliente 1, que enviou 10 mensagens, teve como resultados:
+ - 10 foram recebidas (100.000000%).
+ - 0 foram perdidas (0.000000%).
+ - 0 estavam fora de sequencia (0.000000%).
+
+Fim do log.
+
