@@ -1,0 +1,25 @@
+O trabalho foi desenvolvido para a disciplina Redes de Computadores II, lecionada pelo professor Elias P. Duarte Jr, e foi feito pelos alunos Cristian Weiland e Lucas Romanó Santos, GRRs sendo, respectivamente, GRR20142235 e GRR20143898.
+
+Ele foi implementado na linguagem C, pois é a linguagem com a qual os membros tem mais familiaridade e gosto, devido à sua alta performance, além de possuir uma versão já implementada de cliente e servidor UDP.
+
+O trabalho foi implementado da seguinte forma:
+
+Usamos como base o servidor e cliente UDP presentes no site do professor Elias. A partir dele, tivemos que tomar algumas decisões a respeito de como informar ao servidor o número de mensagens que seriam enviadas por cada cliente, como inicializar vários clientes simultaneamente, como indicar ao servidor que os resultados devem ser impressas e o processo finalizado, como decidir se uma mensagem estava fora de sequência, como armazenar os dados de cada cliente (mensagens perdidas, mensagens em ordem errada) e identificar cada cliente e, por fim, como fazer o log.
+
+- Como informar ao servidor o número de mensagens que seriam enviadas por cada cliente?
+  R: Parametro...
+
+- Como inicializar vários clientes simultaneamente?
+  R: Ssh e ssh autenticate....
+
+- Como indicar ao servidor que os resultados devem ser impressos? E como indicar que o processo deve ser finalizado?
+  R: Mensagem resultado e mensagem fim....
+
+- Como decidir se uma mensagem estava fora de sequência?
+  R: Comparando >=.....
+
+- Como armazenar os dados de cada cliente (mensagens perdidas, na ordem errada e recebidas) e como indentificar cada cliente?
+  R: Struct cliente.......
+
+- Como fazer o log?
+  R: Separado em detalhado e nao detalhado, como o formato foi escolhido....
