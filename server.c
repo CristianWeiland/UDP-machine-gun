@@ -49,6 +49,48 @@ void imprime_resultados(cliente c[], int num_clientes) {
     return ;
 }
 
+void log_simplificado(cliente c[], int num_clientes, int concatenar, const char* nome_arquivo) {
+    int i;
+    FILE *fp;
+    char modo[2];
+    int total_recebidas = 0, total_perdidas = 0, total_err = 0, total_msg = 0;
+
+    modo[0] = concatenar ? 'a' : 'w';
+    modo[1] = '\0';
+
+    if(!(fp = fopen(nome_arquivo, modo))) {
+        puts("Nao foi possivel abrir o arquivo de log.");
+        exit(1);
+    }
+
+    if(num_clientes <= 0) {
+        fprintf(fp, "Nao houve nenhum cliente.\n");
+        fclose(fp);
+        return ;
+    }
+
+    for(i=0; i<num_clientes; i++) {
+        total_msg += c[i].total_msg;
+        total_recebidas += c[i].msg_rec;
+        total_perdidas += c[i].msg_per;
+        total_err += c[i].msg_err;
+    }
+
+    fprintf(fp, "Total: De %d mensagens, %d (%f%%) foram recebidas, %d (%f%%) foram perdidas, %d (%f%%) estavam fora de sequencia.\n",
+            total_msg, total_recebidas, (double) total_recebidas * 100 / total_msg,
+            total_perdidas, (double) total_perdidas * 100 / total_msg,
+            total_err, (double) total_err * 100 / total_msg);
+
+    for(i=0; i<num_clientes; i++) {
+        fprintf(fp, "Cliente %d: De %d mensagens, %d (%f%%) foram recebidas, %d (%f%%) foram perdidas, %d (%f%%) estavam fora de sequencia.\n", i,
+                c[i].total_msg, c[i].msg_rec, (double) c[i].msg_rec * 100 / c[i].total_msg,
+                c[i].msg_per, (double) c[i].msg_per * 100 / c[i].total_msg,
+                c[i].msg_err, (double) c[i].msg_err * 100 / c[i].total_msg);
+    }
+
+    fclose(fp);
+}
+
 void imprime_log(cliente c[], int num_clientes, int concatenar, const char* nome_arquivo) {
     int i;
     FILE *fp;
@@ -73,7 +115,7 @@ void imprime_log(cliente c[], int num_clientes, int concatenar, const char* nome
         fclose(fp);
         return ;
     }
- 
+
     fprintf(fp, "O servidor recebeu um total de %d mensagens de %d clientes.\n\n", c[0].total_msg, num_clientes);
     for(i=0; i<num_clientes; i++) {
         total_recebidas += c[i].msg_rec;
@@ -95,6 +137,7 @@ void imprime_log(cliente c[], int num_clientes, int concatenar, const char* nome
 
     fprintf(fp, "Fim do log.\n\n");
 
+    fclose(fp);
 }
 /*
 void imprime_log_detalhado() {
@@ -245,7 +288,7 @@ int main(int argc, char*argv[]) {
     imprime_log(c, num_clientes, CONCATENAR, "log_detalhado.txt");
     imprime_log(c, num_clientes, CONCATENAR, "log.txt");
 
-    pega_dados("log.txt")
+    //pega_dados("log.txt")
 
     /*
     Calcula media, desvio padrao.
