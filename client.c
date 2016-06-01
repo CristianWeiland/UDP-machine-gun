@@ -88,8 +88,6 @@ int main(int argc, char *argv[]) {
         if(sendto(sock_descr, dados, strlen(dados)+1, 0, (struct sockaddr *) &enderecRemoto, sizeof(enderecRemoto)) == 0) {
             puts("Nao consegui transmitir a mensagem.");
             exit(1);
-        } else {
-            puts("Acho que enviei.");
         }
         msgAtual++;
     }

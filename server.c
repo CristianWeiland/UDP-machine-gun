@@ -13,7 +13,7 @@
 
 struct cliente {
     long ip;
-    int total_msg, msg_rec, msg_per, msg_err;
+    int total_msg, msg_rec, msg_per, msg_err, msg_atual;
 };
 
 typedef struct cliente cliente;
@@ -82,7 +82,7 @@ void log_simplificado(cliente c[], int num_clientes, int concatenar, const char*
             total_err, (double) total_err * 100 / total_msg);
 
     for(i=0; i<num_clientes; i++) {
-        fprintf(fp, "Cliente %d: De %d mensagens, %d (%f%%) foram recebidas, %d (%f%%) foram perdidas, %d (%f%%) estavam fora de sequencia.\n", i,
+        fprintf(fp, "Cliente %d: De %d mensagens, %d (%f%%) foram recebidas, %d (%f%%) foram perdidas, %d (%f%%) estavam fora de sequencia.\n", i+1,
                 c[i].total_msg, c[i].msg_rec, (double) c[i].msg_rec * 100 / c[i].total_msg,
                 c[i].msg_per, (double) c[i].msg_per * 100 / c[i].total_msg,
                 c[i].msg_err, (double) c[i].msg_err * 100 / c[i].total_msg);
@@ -91,7 +91,7 @@ void log_simplificado(cliente c[], int num_clientes, int concatenar, const char*
     fclose(fp);
 }
 
-void imprime_log(cliente c[], int num_clientes, int concatenar, const char* nome_arquivo) {
+void log_detalhado(cliente c[], int num_clientes, int concatenar, const char* nome_arquivo) {
     int i;
     FILE *fp;
     char modo[2];
@@ -104,12 +104,12 @@ void imprime_log(cliente c[], int num_clientes, int concatenar, const char* nome
         puts("Nao foi possivel abrir o arquivo de log.");
         exit(1);
     }
-
+/*
     fprintf(fp, "===============================================================\n");
     fprintf(fp, "Inicio da execucao: programa que implementa uma artilharia UDP.\n");
     fprintf(fp, "Prof. Elias P. Duarte Jr. - Disciplina Redes de Computadores II\n");
     fprintf(fp, "===============================================================\n\n");
-
+*/
     if(num_clientes <= 0) {
         fprintf(fp, "Nao houve nenhum cliente.\n");
         fclose(fp);
@@ -139,11 +139,7 @@ void imprime_log(cliente c[], int num_clientes, int concatenar, const char* nome
 
     fclose(fp);
 }
-/*
-void imprime_log_detalhado() {
 
-}
-*/
 int ja_comunicou(cliente *c, int num_clientes, long ip) {
     // Retorna o indice i de c[i] se o cliente já comunicou com o cliente i, -1 caso contrário.
     int i;
@@ -154,43 +150,7 @@ int ja_comunicou(cliente *c, int num_clientes, long ip) {
     }
     return -1;
 }
-/* Fiz soh de memoria, n sei se isso funciona, eh soh uma ideia
-cliente media(cliente c[], int tam) {
-    int i;
-    cliente total;
-    for(i=0; i<tam; i++) {
-        total.total_msg += c[i].total_msg;
-        total.msg_rec += c[i].msg_rec;
-        total.msg_per += c[i].msg_per;
-        total.msg_err += c[i].msg_err;
-    }
 
-    total.total_msg = total.total_msg / tam;
-    total.msg_rec = total.msg_rec / tam;
-    total.msg_per = total.msg_per / tam;
-    total.msg_err = total.msg_err / tam;
-
-    return total;
-}
-
-cliente desvio_padrao(cliente media, cliente c[], int tam) {
-    int i;
-    cliente desvio;
-    for(i=0; i<tam; i++) {
-        desvio.total_msg += ((c[i].total_msg - media.total_msg) * (c[i].total_msg - media.total_msg));
-        desvio.msg_rec += ((c[i].msg_rec - media.msg_rec) * (c[i].msg_rec - media.msg_rec));
-        desvio.msg_per += ((c[i].msg_per - media.msg_per) * (c[i].msg_per - media.msg_per));
-        desvio.msg_err += ((c[i].msg_err - media.msg_err) * (c[i].msg_err - media.msg_err));
-    }
-
-    desvio.total_msg = sqrt(desvio.total_msg);
-    desvio.msg_rec = sqrt(desvio.msg_rec);
-    desvio.msg_per = sqrt(desvio.msg_per);
-    desvio.msg_err = sqrt(desvio.msg_err);
-
-    return desvio;
-}
-*/
 int main(int argc, char*argv[]) {
     int sock;
     int msgAtual = 0, num_clientes = 0, index;
@@ -265,17 +225,19 @@ int main(int argc, char*argv[]) {
         if(strcmp(buffer,"Resultado") == 0) {
             imprime_resultados(c, num_clientes);
                // Msg recebida - ultima msg recebida
-        } else if(atoi(buffer) < msgAtual) {
+        } else if(atoi(buffer) < c[index].msg_atual) { // Ve se a mensagem ta na ordem errada pra esse cliente
             c[index].msg_err++;
             //printf("Ordem errada: %s\n", buffer);
             if(logDetalhado) {
                 fprintf(fp, "Mensagem recebida, mas em ordem errada.\n");
             }
+        } else { // Tava na ordem certa, atualiza msgAtual
+            c[index].msg_atual = atoi(buffer);
         }
 
         //puts(buffer);
 
-        msgAtual = atoi(buffer);
+        //msgAtual = atoi(buffer);
         c[index].msg_rec++;
 
         flushBuff(buffer, BUFSIZ);
@@ -285,8 +247,11 @@ int main(int argc, char*argv[]) {
         c[i].msg_per = c[i].total_msg - c[i].msg_rec;
     }
 
-    imprime_log(c, num_clientes, CONCATENAR, "log_detalhado.txt");
-    imprime_log(c, num_clientes, CONCATENAR, "log.txt");
+    if(logDetalhado)
+        log_detalhado(c, num_clientes, CONCATENAR, "log_detalhado.txt");
+    //imprime_log(c, num_clientes, CONCATENAR, "log.txt");
+
+    log_simplificado(c, num_clientes, CONCATENAR, "log.txt");
 
     //pega_dados("log.txt")
 
