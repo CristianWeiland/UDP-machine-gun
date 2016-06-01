@@ -6,20 +6,32 @@ O trabalho foi implementado da seguinte forma:
 
 Usamos como base o servidor e cliente UDP presentes no site do professor Elias. A partir dele, tivemos que tomar algumas decisões a respeito de como informar ao servidor o número de mensagens que seriam enviadas por cada cliente, como inicializar vários clientes simultaneamente, como indicar ao servidor que os resultados devem ser impressas e o processo finalizado, como decidir se uma mensagem estava fora de sequência, como armazenar os dados de cada cliente (mensagens perdidas, mensagens em ordem errada) e identificar cada cliente e, por fim, como fazer o log.
 
-- Como informar ao servidor o número de mensagens que seriam enviadas por cada cliente?
-  R: Parametro...
 
-- Como inicializar vários clientes simultaneamente?
-  R: Ssh e ssh autenticate....
 
-- Como indicar ao servidor que os resultados devem ser impressos? E como indicar que o processo deve ser finalizado?
-  R: Mensagem resultado e mensagem fim....
+--> Como informar ao servidor o número de mensagens que seriam enviadas por cada cliente?
+    R: A solução adotada foi a partir de parâmetros, tanto do cliente como do servidor. Ao inicializar o servidor, um dos parâmetros indica quantas mensagens cada cliente vai mandar. É apenas um parâmetro, o que significa que todos os clientes devem mandar o mesmo número de mensagens. O cliente sabe quantas mensagens deve mandar da mesma forma: um parâmetro indica quantas mensagens ele enviará. Esse número deverá ser igual ao do servidor, caso contrário, os resultados obtidos pelo servidor serão incorretos (por exemplo, um servidor espera 10000 mensagens e o cliente é inicializado para enviar 3000 mensagens, o servidor irá contabilizar essa diferença de 7000 mensagens como perdas.
 
-- Como decidir se uma mensagem estava fora de sequência?
-  R: Comparando >=.....
+--> Como inicializar vários clientes simultaneamente?
+    R: Criamos um script que faz SSH pra varias maquinas diferentes (como bowmore, cohiba, etc.) e executa o cliente. Esse script recebe apenas como parâmetro o número de mensagens que devem ser enviadas por cada cliente. As máquinas para as quais será realizado o SSH são fixas no código do script.
 
-- Como armazenar os dados de cada cliente (mensagens perdidas, na ordem errada e recebidas) e como indentificar cada cliente?
-  R: Struct cliente.......
+--> Como indicar ao servidor que os resultados devem ser impressos? E como indicar que o processo deve ser finalizado?
+    R: Para indicar ao servidor que os resultados devem ser impressos foram consideradas duas alternativas: a primeira era usar um timeout e, após um certo número de segundos, imprimir os resultados e finalizar o programa. Essa alternativa foi descartada, porque se o cliente não fosse executado rápido o suficiente, o servidor morreria antes de receber qualquer conexão, e o tempo de espera após os clientes serem executados dificultaria os testes. A alternativa usada então foi a de criar mensagens especiais, uma mensagem "Resultado" que faria o servidor imprimir o resultado obtido até o momento e uma mensagem "End" que faria o servidor parar de aceitar mensagens, criar o log da execução e finalizar.
 
-- Como fazer o log?
-  R: Separado em detalhado e nao detalhado, como o formato foi escolhido....
+--> Como decidir se uma mensagem estava fora de sequência?
+    R: Toda mensagem é enviada com um número de sequência em seus dados. O servidor obtém esse número (que vem como string), converte-o para um inteiro e compara com a última mensagem recebida. Caso a última mensagem recebida tenha um número de sequência maior que a mensagem atual, ela está fora de ordem. Exemplo: A última mensagem recebida foi "5", e a mensagem atual veio com sequência "3". Como 5 > 3, a mensagem "3" está fora de sequência.
+
+--> Como armazenar os dados de cada cliente (mensagens perdidas, na ordem errada e recebidas) e como indentificar cada cliente?
+    R: Para armazenar dados foi criada uma estrutura Cliente:
+    struct cliente {
+        long ip;
+        int total_msg, msg_rec, msg_per, msg_err;
+    };
+    Essa estrutura funciona da seguinte forma: o membro "ip" armazena o ip do cliente, possibilitando, dessa forma, identificar quem enviou cada mensagem. Os inteiros total_msg, msg_rec, msg_per e msg_err armazenam, respectivamente, o número total de mensagens esperadas, o número de mensagens recebidas, o número de mensagens perdidas e o número de mensagens em ordem errada.
+    O trabalho implementa uma estrutura de até MAXCLIENTES (20) clientes, e, para saber quantos clientes existem, utiliza a variável num_clientes.
+
+--> Como é feito o log?
+    R: O log pode ser detalhado ou não detalhado, isso depende de um parâmetro do servidor, que deve ser 0 caso o log não deva ser detalhado ou qualquer outro número caso contrário.
+    O formato de um log não detalhado é:
+        O resultado, separado por clientes, foi:
+        - Cliente 1: De 1000000 mensagens, 308954 (30.895400%) foram recebidas, 691046 (69.104600%) foram perdidas, 1 (0.000100%) estavam fora de sequencia;
+
