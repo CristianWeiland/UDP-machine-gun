@@ -7,7 +7,7 @@ if [ $# -eq 0 ]; then
 fi
 
 function connectTo {
-    ssh -nf cw14@$1 ./redesII/client bowmore 7777 $msgs
+    ssh -nf cw14@$1 ./redesII/client bowmore 7777 $msgs 0
 }
 
 connectTo cohiba
