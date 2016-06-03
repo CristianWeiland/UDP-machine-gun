@@ -1,8 +1,21 @@
 #!/bin/bash
-ssh cw14@bowmore.c3sl.ufpr.br:/home/bcc/cw14/redesii '/cliente 7777 10000'
-ssh cw14@macalan:/home/bcc/cw14/redesii '/cliente 7777 10000'
-ssh cw14@orval:/home/bcc/cw14/redesii '/cliente 7777 10000'
-ssh cw14@latrappe:/home/bcc/cw14/redesii '/cliente 7777 10000'
-ssh cw14@cohiba:/home/bcc/cw14/redesii '/cliente 7777 10000'
+msgs=$1
+
+if [ $# -eq 0 ]; then
+    echo Uso correto: ./connect.sh numero-de-mensagens-por-cliente
+    exit
+fi
+
+function connectTo {
+    ssh -nf cw14@$1 ./redesII/client bowmore 7777 $msgs
+}
+
+connectTo cohiba
+connectTo macalan
+connectTo latrappe
+connectTo caporal
+connectTo priorat
+connectTo talisker
+connectTo achel
 
 exit 0
