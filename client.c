@@ -17,17 +17,19 @@ int main(int argc, char *argv[]) {
     int numBytesRecebidos;
     int numMensagens = -1, msgAtual = 0;
     int ordemErrada = 0, recebidas = 0;
+    int logDetalhado;
     struct sockaddr_in enderecRemoto;
     struct hostent *registroDNS;
     char buffer[BUFSIZ+1];
     char *nomeHost;
     char *dados;
 
-    if(argc != 4) {
-        puts("Uso correto: client <nome-servidor> <porta> <numero-mensagens>");
+    if(argc != 5) {
+        puts("Uso correto: client <nome-servidor> <porta> <numero-mensagens> <log-detalhado (1 = sim, 0 = nao)>");
         exit(1);
     }
 
+    logDetalhado = atoi(argv[4]);
     numMensagens = atoi(argv[3]);
     if(numMensagens <= 0 && strcmp("result",argv[3]) != 0 && strcmp("end",argv[3]) != 0) {
         puts("Não consigo enviar menos de 1 mensagem.");
@@ -53,8 +55,6 @@ int main(int argc, char *argv[]) {
         puts("Nao consegui abrir o socket.");
         exit(1);
     }
-
-    //int i = sizeof(enderecRemoto);
 
     if(strcmp(argv[3], "result") == 0) {
         puts("Enviando mensagem fim.");
@@ -88,6 +88,8 @@ int main(int argc, char *argv[]) {
         if(sendto(sock_descr, dados, strlen(dados)+1, 0, (struct sockaddr *) &enderecRemoto, sizeof(enderecRemoto)) == 0) {
             puts("Nao consegui transmitir a mensagem.");
             exit(1);
+        } else if(logDetalhado) {
+            printf("Enviada a mensagem número %d\n",msgAtual);
         }
         msgAtual++;
     }
